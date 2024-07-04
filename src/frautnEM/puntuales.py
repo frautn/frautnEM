@@ -1,4 +1,4 @@
-#     fraUTN is a set of library functions to be used in courses of electromagnetism.
+#     frautnEM is a set of library functions to be used in courses of electromagnetism.
 #     Copyright (C) 2024  Edgardo Palazzo (epalazzo@fra.utn.edu.ar)
 
 #     This program is free software: you can redistribute it and/or modify
