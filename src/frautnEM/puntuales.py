@@ -20,6 +20,30 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 
+# 20240717
+def Efield(x, y, z, Q):
+    """Calcula las componentes del campo eléctrico en N/C.
+    Ingresar valores de x,y,z en metros y q en coulomb.
+    Q es una lista de la forma:
+    Q = [
+        [q1,x1,y1,z1],
+        [q2,x2,y2,z2],
+        ...
+        [qN,xN,yN,zN]
+    ]
+    """
+    k = 9E9   #Constante de Coulomb en las unidades correspondientes.
+
+    Ei,Ej,Ek = 0,0,0
+    for qi in Q:
+        r = ((x - qi[1])**2 + (y - qi[2])**2 + (z - qi[3])**2)**(3/2)
+        Ei = Ei + k * qi[0] * (x - qi[1]) / r
+        Ej = Ej + k * qi[0] * (y - qi[2]) / r
+        Ek = Ek + k * qi[0] * (z - qi[3]) / r
+
+    return Ei, Ej, Ek
+
+
 # TODO: Return axs, add
 # more control over plotting parameters.
 # Add examples in the docstring.
@@ -68,17 +92,16 @@ def plotE(E, **params):
     axs.set_ylabel('$y$ [m]')
 
 
+# 20240717
 # TODO: Return axs, add
 # more control over plotting parameters.
 # Add examples in the docstring.
-def plotEf(Ef, Q, **params):
+def plotEf(Q, **params):
     """
-    Muestra las líneas de campo en 2D.
+    Muestra las líneas de campo eléctrico en 2D.
 
     Parameters
     ----------
-    Ef : function
-        Una función de un campo vectorial (3 variables que devuelve 3 componentes).
     Q : list
         Q = [
             [q1,x1,y1,z1],
@@ -113,7 +136,7 @@ def plotEf(Ef, Q, **params):
     Y, X = np.mgrid[-dx:dx:w, -dy:dy:w]
     Z = 0*X
 
-    Ei, Ej, Ek = Ef(X,Y,Z,Q)
+    Ei, Ej, Ek = Efield(X,Y,Z,Q)
 
     fig, axs = plt.subplots(1, 1, figsize=figsize)
     strm = axs.streamplot(X, Y, Ei, Ej, color='b',
