@@ -44,6 +44,28 @@ def Efield(x, y, z, Q):
     return Ei, Ej, Ek
 
 
+# 20240719
+def V(x,y,z,Q):
+    """Calcula potencial eléctrico en Volt.
+    Ingresar valores de x,y,z en metros y q en coulomb.
+    Q es una lista de la forma:
+    Q = [
+        [q1,x1,y1,z1],
+        [q2,x2,y2,z2],
+        ...
+        [qN,xN,yN,zN]
+    ]
+    """
+    k = 9E9   #Constante de Coulomb en las unidades correspondientes.
+
+    V = 0
+    for qi in Q:
+        r = ((x - qi[1])**2 + (y - qi[2])**2 + (z - qi[3])**2)**(1/2)
+        V = V + k * qi[0] / r
+
+    return V
+
+
 # 20240717
 # TODO: Return axs, add
 # more control over plotting parameters.
@@ -575,13 +597,12 @@ def plotEfvector3d(Ef, Q, **params):
 def fmtV(x):
     return f"{x}V"
 
-# 20240613
+# 20240719
 # Esta función puede mejorarse muchísimo, sobre todo respecto a las escalas y unidades.
-def equipotencialesPuntuales(Q, V, dim = 100, levels = 10, figsize=(6,6), titulo='Equipotenciales',
+def equipotencialesPuntuales(Q, dim = 100, levels = 10, figsize=(6,6), titulo='Equipotenciales',
                 EF = False, density=0.75, dq=0.02, **params):
     """
-    Grafica equipotenciales generadas por la distribución de cargas Q, con voltajes calculados 
-    usando la función V.
+    Grafica equipotenciales generadas por la distribución de cargas Q.
 
     Parameters
     ----------
@@ -592,8 +613,6 @@ def equipotencialesPuntuales(Q, V, dim = 100, levels = 10, figsize=(6,6), titulo
             ...
             [qN,xN,yN,zN]
         ]
-    V : function
-        La función que calcula los voltajes.
     dim : integer (opcional)
         Valores máximos para x,y en cm.
     levels : list
