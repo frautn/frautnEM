@@ -44,54 +44,6 @@ def Efield(x, y, z, Q):
     return Ei, Ej, Ek
 
 
-# TODO: Return axs, add
-# more control over plotting parameters.
-# Add examples in the docstring.
-def plotE(E, **params):
-    """
-    Muestra las líneas de campo en 2D.
-
-    Parameters
-    ----------
-    E : function
-        Una función de un campo vectorial (3 variables que devuelve 3 componentes).
-    dx : float
-        Se produce una grilla con -dx <= x <= dx. Si dy = 0,
-        se usan los mismos intervalos para esa variable: -dx <= y <= dx.
-    dy : float (opcional)
-        La grilla puede tener distintas dimensiones en cada eje.
-    w : integer (opcional)
-        Cantidad de particiones de cada dimensión en la grilla.
-
-    *Además de los parámetros de matplotlib y streamplot, por ejemplo:*
-    figsize : tuple
-    title : string
-    """
-
-    dx = params.get('dx', 5)
-    dy = params.get('dy', dx)
-    w = params.get('w', 100)
-
-    figsize = params.get('figsize', (5,5))
-    title = params.get('title', 'Líneas de campo')
-    linewidth = params.get('linewidth', 0.4)
-    density = params.get('density', 0.7)
-
-    # Convirtiendo w a número complejo se incluye el extremo del intervalo en mgrid.
-    w = w * 1j
-    Y, X = np.mgrid[-dx:dx:w, -dy:dy:w]
-    Z = 0*X
-    Ei, Ej, Ek = E(X,Y,Z)
-
-    fig, axs = plt.subplots(1, 1, figsize=figsize)
-
-    strm = axs.streamplot(X, Y, Ei, Ej, color='b',
-                        linewidth=linewidth, density=density)
-    axs.set_title(title)
-    axs.set_xlabel('$x$ [m]')
-    axs.set_ylabel('$y$ [m]')
-
-
 # 20240717
 # TODO: Return axs, add
 # more control over plotting parameters.
