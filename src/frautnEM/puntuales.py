@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 
-# 20240717
-def Efield(x, y, z, Q):
+# 20240815
+def Ef(x, y, z, Q):
     """Calcula las componentes del campo eléctrico en N/C.
     Ingresar valores de x,y,z en metros y q en coulomb.
     Q es una lista de la forma:
@@ -110,7 +110,7 @@ def plotEf(Q, **params):
     Y, X = np.mgrid[-dx:dx:w, -dy:dy:w]
     Z = 0*X
 
-    Ei, Ej, Ek = Efield(X,Y,Z,Q)
+    Ei, Ej, Ek = Ef(X,Y,Z,Q)
 
     fig, axs = plt.subplots(1, 1, figsize=figsize)
     strm = axs.streamplot(X, Y, Ei, Ej, color='b',
