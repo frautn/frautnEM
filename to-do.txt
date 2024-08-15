@@ -1,0 +1,1 @@
+1. Corregir plotEf. dx y dy no funcionan correctamente. Agregar un x e y iniciales para desplazar el gráfico.
