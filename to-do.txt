@@ -1,1 +1,2 @@
 1. Corregir plotEf. dx y dy no funcionan correctamente. Agregar un x e y iniciales para desplazar el gráfico.
+2. Mover funciones específicas para las clases, tales como generar figuras que analizan un resultado único (por ejemplo, cómo varía el campo en un eje) a un módulo separado. Y agregar un deprecation message (no borrarlas de la biblioteca actual por las dudas).
