@@ -253,14 +253,13 @@ def plotEfcontribuciones(Ef, Q, x, **params):
     plt.show()
     # plt.close()
 
-def plotEfVector(Ef, Q, X, **params):
+# 20240819
+def plotEfVector(Q, X, **params):
     """
     Muestra los vectores del campo en 2D usando pyplot.quiver.
 
     Parameters
     ----------
-    Ef : function
-        Una función de un campo vectorial (3 variables que devuelve 3 componentes).
     Q : list
         Q = [
             [q1,x1,y1,z1],
