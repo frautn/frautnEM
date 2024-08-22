@@ -529,9 +529,9 @@ def plotEfvector3d(Q, **params):
 def fmtV(x):
     return f"{x}V"
 
-# 20240719
+# 20240821
 # Esta función puede mejorarse muchísimo, sobre todo respecto a las escalas y unidades.
-def equipotencialesPuntuales(Q, dim = 100, levels = 10, figsize=(6,6), titulo='Equipotenciales',
+def equipotencialesPuntuales(Q, dim = 1, niveles = 10, figsize=(6,6), titulo='Equipotenciales',
                 EF = False, density=0.75, dq=0.02, **params):
     """
     Grafica equipotenciales generadas por la distribución de cargas Q.
@@ -547,7 +547,7 @@ def equipotencialesPuntuales(Q, dim = 100, levels = 10, figsize=(6,6), titulo='E
         ]
     dim : integer (opcional)
         Valores máximos para x,y en cm.
-    levels : list
+    niveles : list
         Los valores de voltaje de las equipotenciales que se quiere graficar.
 
     *Además de los parámetros de matplotlib y quiver, por ejemplo:*
@@ -558,42 +558,42 @@ def equipotencialesPuntuales(Q, dim = 100, levels = 10, figsize=(6,6), titulo='E
 
     if 'x' in params:
         x = params.get('x', 0)
-        y = np.arange(-dim, dim+1)
-        z = np.arange(-dim, dim+1)
+        y = np.arange(-dim, dim+0.01, 0.01)
+        z = np.arange(-dim, dim+0.01, 0.01)
         Y, Z = np.meshgrid(y, z)
         X = Y*0 + x
-        Vmat = V(X,Y/100,Z/100,Q)  # Convertir Y, Z a metro.
+        Vmat = V(X,Y,Z,Q) 
         # Luego de calculados los potenciales,
         # reutilizo la grilla para las variables que se grafican.
         X, Y = np.meshgrid(y, z)
     elif 'y' in params:
         y = params.get('y', 0)
-        x = np.arange(-dim, dim+1)
-        z = np.arange(-dim, dim+1)
+        x = np.arange(-dim, dim+0.01, 0.01)
+        z = np.arange(-dim, dim+0.01, 0.01)
         X, Z = np.meshgrid(x, z)
         Y = X*0 + y
-        Vmat = V(X/100,Y,Z/100,Q)  # Convertir X, Z a metro.
+        Vmat = V(X,Y,Z,Q) 
         # Luego de calculados los potenciales,
         # reutilizo la grilla para las variables que se grafican.
         X, Y = np.meshgrid(x, z)
     else:
         z = params.get('z', 0)
-        x = np.arange(-dim, dim+1)
-        y = np.arange(-dim, dim+1)
+        x = np.arange(-dim, dim+0.01, 0.01)
+        y = np.arange(-dim, dim+0.01, 0.01)
         X, Y = np.meshgrid(x, y)
         Z = X*0 + z
-        Vmat = V(X/100,Y/100,Z,Q)  # Convertir X, Y a metro.
+        Vmat = V(X,Y,Z,Q) 
 
     # Set the labels for the plane to be displayed.
     if isinstance(x, float) or isinstance(x, int):
-        xlabel = 'y [cm]'
-        ylabel = 'z [cm]'
+        xlabel = 'y [m]'
+        ylabel = 'z [m]'
     elif isinstance(y, float) or isinstance(y, int):
-        xlabel = 'x [cm]'
-        ylabel = 'z [cm]'
+        xlabel = 'x [m]'
+        ylabel = 'z [m]'
     elif isinstance(z, float) or isinstance(z, int):
-        xlabel = 'x [cm]'
-        ylabel = 'y [cm]'
+        xlabel = 'x [m]'
+        ylabel = 'y [m]'
 
     fig, ax = plt.subplots(1, 1, figsize=figsize,facecolor=(1, 1, 1) )
     ax.set_title(titulo)
@@ -607,24 +607,24 @@ def equipotencialesPuntuales(Q, dim = 100, levels = 10, figsize=(6,6), titulo='E
         # Check if the charge has to be drawn or not.
         if isinstance(x, float) or isinstance(x, int):
             if xq == x:
-                circ = plt.Circle((yq*100,zq*100), dq*dim, color=color)
+                circ = plt.Circle((yq,zq), dq*dim, color=color)
                 ax.add_patch(circ)
         elif isinstance(y, float) or isinstance(y, int):
             if yq == y:
-                circ = plt.Circle((xq*100,zq*100), dq*dim, color=color)
+                circ = plt.Circle((xq,zq), dq*dim, color=color)
                 ax.add_patch(circ)
         elif isinstance(z, float) or isinstance(z, int):
             if zq == z:
-                circ = plt.Circle((xq*100,yq*100), dq*dim, color=color)
+                circ = plt.Circle((xq,yq), dq*dim, color=color)
                 ax.add_patch(circ)
 
     if EF:
-        CS2 = ax.contour(X, Y, Vmat, levels = levels, colors = 'red', alpha=0.4)
+        CS2 = ax.contour(X, Y, Vmat, levels = niveles, colors = 'red', alpha=0.4)
         E = np.gradient(-1*Vmat)
         ax.streamplot(X, Y, E[1], E[0], linewidth=1, cmap=plt.cm.inferno,
               density=density, arrowstyle='->', arrowsize=1.5)
     else:
-        CS2 = ax.contour(X, Y, Vmat, levels = levels, colors = 'red', alpha=1)
+        CS2 = ax.contour(X, Y, Vmat, levels = niveles, colors = 'red', alpha=1)
     
     ax.clabel(CS2, inline=True, fmt=fmtV, fontsize=10)
 
@@ -634,3 +634,109 @@ def equipotencialesPuntuales(Q, dim = 100, levels = 10, figsize=(6,6), titulo='E
     plt.show()
 
     # return Vmat
+
+# # 20240719
+# # Esta función puede mejorarse muchísimo, sobre todo respecto a las escalas y unidades.
+# def equipotencialesPuntuales(Q, dim = 100, levels = 10, figsize=(6,6), titulo='Equipotenciales',
+#                 EF = False, density=0.75, dq=0.02, **params):
+#     """
+#     Grafica equipotenciales generadas por la distribución de cargas Q.
+
+#     Parameters
+#     ----------
+#     Q : list
+#         Q = [
+#             [q1,x1,y1,z1],
+#             [q2,x2,y2,z2],
+#             ...
+#             [qN,xN,yN,zN]
+#         ]
+#     dim : integer (opcional)
+#         Valores máximos para x,y en cm.
+#     levels : list
+#         Los valores de voltaje de las equipotenciales que se quiere graficar.
+
+#     *Además de los parámetros de matplotlib y quiver, por ejemplo:*
+#     length : float
+#     figsize : tuple
+#     title : string
+#     """
+
+#     if 'x' in params:
+#         x = params.get('x', 0)
+#         y = np.arange(-dim, dim+1)
+#         z = np.arange(-dim, dim+1)
+#         Y, Z = np.meshgrid(y, z)
+#         X = Y*0 + x
+#         Vmat = V(X,Y/100,Z/100,Q)  # Convertir Y, Z a metro.
+#         # Luego de calculados los potenciales,
+#         # reutilizo la grilla para las variables que se grafican.
+#         X, Y = np.meshgrid(y, z)
+#     elif 'y' in params:
+#         y = params.get('y', 0)
+#         x = np.arange(-dim, dim+1)
+#         z = np.arange(-dim, dim+1)
+#         X, Z = np.meshgrid(x, z)
+#         Y = X*0 + y
+#         Vmat = V(X/100,Y,Z/100,Q)  # Convertir X, Z a metro.
+#         # Luego de calculados los potenciales,
+#         # reutilizo la grilla para las variables que se grafican.
+#         X, Y = np.meshgrid(x, z)
+#     else:
+#         z = params.get('z', 0)
+#         x = np.arange(-dim, dim+1)
+#         y = np.arange(-dim, dim+1)
+#         X, Y = np.meshgrid(x, y)
+#         Z = X*0 + z
+#         Vmat = V(X/100,Y/100,Z,Q)  # Convertir X, Y a metro.
+
+#     # Set the labels for the plane to be displayed.
+#     if isinstance(x, float) or isinstance(x, int):
+#         xlabel = 'y [cm]'
+#         ylabel = 'z [cm]'
+#     elif isinstance(y, float) or isinstance(y, int):
+#         xlabel = 'x [cm]'
+#         ylabel = 'z [cm]'
+#     elif isinstance(z, float) or isinstance(z, int):
+#         xlabel = 'x [cm]'
+#         ylabel = 'y [cm]'
+
+#     fig, ax = plt.subplots(1, 1, figsize=figsize,facecolor=(1, 1, 1) )
+#     ax.set_title(titulo)
+#     for carga in Q:
+#         q, xq, yq, zq = carga
+#         # Different colors for positive and negative charges.
+#         if q>0:
+#             color = 'red'
+#         else:
+#             color = 'blue'
+#         # Check if the charge has to be drawn or not.
+#         if isinstance(x, float) or isinstance(x, int):
+#             if xq == x:
+#                 circ = plt.Circle((yq*100,zq*100), dq*dim, color=color)
+#                 ax.add_patch(circ)
+#         elif isinstance(y, float) or isinstance(y, int):
+#             if yq == y:
+#                 circ = plt.Circle((xq*100,zq*100), dq*dim, color=color)
+#                 ax.add_patch(circ)
+#         elif isinstance(z, float) or isinstance(z, int):
+#             if zq == z:
+#                 circ = plt.Circle((xq*100,yq*100), dq*dim, color=color)
+#                 ax.add_patch(circ)
+
+#     if EF:
+#         CS2 = ax.contour(X, Y, Vmat, levels = levels, colors = 'red', alpha=0.4)
+#         E = np.gradient(-1*Vmat)
+#         ax.streamplot(X, Y, E[1], E[0], linewidth=1, cmap=plt.cm.inferno,
+#               density=density, arrowstyle='->', arrowsize=1.5)
+#     else:
+#         CS2 = ax.contour(X, Y, Vmat, levels = levels, colors = 'red', alpha=1)
+    
+#     ax.clabel(CS2, inline=True, fmt=fmtV, fontsize=10)
+
+#     plt.xlabel(xlabel)
+#     plt.ylabel(ylabel)
+#     plt.grid()
+#     plt.show()
+
+#     # return Vmat
