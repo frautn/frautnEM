@@ -1,10 +1,10 @@
 [build-system]
-requires = ['setuptools>=64']
-build-backend = 'setuptools.build_meta'
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
 
 [project]
 name = "frautnEM"
-version = "1.0.3"
+version = "1.0.4"
 requires-python = ">=3.8"
 authors = [
   {name = "Edgardo Palazzo", email = "epalazzo@fra.utn.edu.ar"},
