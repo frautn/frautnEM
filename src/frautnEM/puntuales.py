@@ -70,9 +70,8 @@ def V(x,y,z,Q):
     return V
 
 
-# 20250611
-# TODO: Return axs, add
-# more control over plotting parameters.
+# 20250613
+# TODO: add more control over plotting parameters.
 # Add examples in the docstring.
 def plotEf(Q, **params):
     """
@@ -94,6 +93,12 @@ def plotEf(Q, **params):
         La grilla puede tener distintas dimensiones en cada eje.
     w : integer (opcional)
         Cantidad de particiones de cada dimensión en la grilla.
+    axs : matplotlib.axes.Axes
+        Objeto axes donde mostrar las líneas de campo. Si está vacío,
+        se genera una figura nueva.    
+    start : array
+        Array para alimentar a Start_points de streamplot, en el formato
+        [[x1,x2,x3,...],[y1,y2,y3,...]]
 
     *Además de los parámetros de matplotlib y streamplot, por ejemplo:*
     figsize : tuple
@@ -103,6 +108,8 @@ def plotEf(Q, **params):
     dx = params.get('dx', 5)
     dy = params.get('dy', dx)
     w = params.get('w', 100)
+    axs = params.get('axs', False)
+    start = params.get('start', [])
 
     figsize = params.get('figsize', (5,5))
     title = params.get('title', 'Líneas de campo')
@@ -116,9 +123,14 @@ def plotEf(Q, **params):
 
     Ei, Ej, Ek = Ef(X,Y,Z,Q)
 
-    fig, axs = plt.subplots(1, 1, figsize=figsize)
-    strm = axs.streamplot(X, Y, Ei, Ej, color='b',
-                        linewidth=linewidth, density=density)
+    if not axs:
+        fig, axs = plt.subplots(1, 1, figsize=figsize)
+    if len(start) == 0:
+        strm = axs.streamplot(X, Y, Ei, Ej, color='b',
+             linewidth=linewidth, density=density)
+    else:
+        strm = axs.streamplot(X, Y, Ei, Ej, color='b', linewidth=linewidth, density=density, start_points=np.array(start).T)
+
     for q in Q:
         qq, xq, yq, zq = q
         if qq > 0:
@@ -133,16 +145,15 @@ def plotEf(Q, **params):
     plt.grid()
 
 
+#20250613
 #TODO: add 3d version.
-def plotEfcontribuciones(Ef, Q, x, **params):
+def plotEfcontribuciones(Q, x, **params):
     """
     Muestra los vectores de cada porción de un cuerpo extenso, ¡en 2D!
     (no usar este código si las cargas están distribuidas en 3D).
 
     Parameters
     ----------
-    Ef : function
-        Una función de un campo vectorial (3 variables que devuelve 3 componentes).
     Q : list
         Q = [
             [q1,x1,y1,z1],
@@ -257,7 +268,7 @@ def plotEfcontribuciones(Ef, Q, x, **params):
     plt.show()
     # plt.close()
 
-# 20240819
+# 20250613
 def plotEfVector(Q, X, **params):
     """
     Muestra los vectores del campo en 2D usando pyplot.quiver.
@@ -274,9 +285,13 @@ def plotEfVector(Q, X, **params):
     X : tuple
         Posiciones donde se calcula el campo.
     limites : tuple
-        Lmites de los ejes: [xmin, xmax, ymin, ymax]
+        Limites de los ejes: [xmin, xmax, ymin, ymax]
     scale : float
         Regula la longitud de las flechas.
+    lineas : float
+        Si es True, se grafican las líneas de campo eléctrico.
+    contribuciones : boolean
+        Graficar los vectores producidos por cada carga, además del resultante.
 
     *Además de los parámetros de matplotlib y quiver, por ejemplo:*
     length : float
@@ -287,12 +302,31 @@ def plotEfVector(Q, X, **params):
     figsize = params.get('figsize', (5,5))
     title = params.get('title', "Algunos vectores de campo eléctrico")
     scale = params.get('scale', 1)
+    lineas = params.get('lineas', False)
+    contribuciones = params.get('contribuciones', False)
 
     xmin, xmax, ymin, ymax = 0,0,0,0
     x_pos = []
     y_pos = []
     Ei = []
     Ej = []
+    color = []
+
+    if contribuciones:
+        for q in Q:
+            if q[0] > 0:
+                cq = 'r'
+            else :
+                cq = 'g'
+            for x in X:
+                Eii, Ejj, Ekk = Ef(x[0],x[1],x[2],[q])
+                x_pos = np.concatenate((x_pos,x[0]), axis=None)
+                y_pos = np.concatenate((y_pos,x[1]), axis=None)
+                N = np.sqrt(Eii**2 + Ejj**2)*1.5
+                Ei = np.concatenate((Ei, Eii/N), axis=None)
+                Ej = np.concatenate((Ej, Ejj/N), axis=None)
+                color = color + [cq]
+
     for x in X:
         Eii, Ejj, Ekk = Ef(x[0],x[1],x[2],Q)
 
@@ -310,10 +344,11 @@ def plotEfVector(Q, X, **params):
         N = np.sqrt(Eii**2 + Ejj**2)*1.5
         Ei = np.concatenate((Ei, Eii/N), axis=None)
         Ej = np.concatenate((Ej, Ejj/N), axis=None)
+        color = color + ['k']
 
     # Creating plot
     fig, ax = plt.subplots(figsize = figsize)
-    ax.quiver(x_pos, y_pos, Ei, Ej, angles='xy', scale_units='xy', scale=scale)
+    ax.quiver(x_pos, y_pos, Ei, Ej, angles='xy', scale_units='xy', scale=scale, color=color)
 
     for q in Q:
         qq, xq, yq, zq = q
@@ -346,7 +381,20 @@ def plotEfVector(Q, X, **params):
     limites = params.get('limites', [xmin,xmax,ymin,ymax])
     ax.axis(limites)
     ax.set_title(title)
+
+    if lineas:
+        # Lista de puntos para que las líneas de campo
+        # pasen por los vectores graficados.
+        a = []
+        b = []
+        for x in X:
+            a = a + [x[0]]
+            b = b + [x[1]]
+        start = [a,b]
+        plotEf(Q, start=start, axs=ax)
+
     plt.show()
+    print(color)
     # plt.close()
 
 
