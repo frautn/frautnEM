@@ -146,7 +146,7 @@ def plotEf(Q, **params):
 
 
 # 20250613
-def plotEfVector2(Q, X, **params):
+def plotEfVector(Q, X, **params):
     """
     Muestra los vectores del campo en 2D usando pyplot.quiver.
 

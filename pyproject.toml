@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "frautnEM"
-version = "1.0.4"
+version = "1.0.5"
 requires-python = ">=3.8"
 authors = [
   {name = "Edgardo Palazzo", email = "epalazzo@fra.utn.edu.ar"},
