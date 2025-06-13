@@ -145,131 +145,8 @@ def plotEf(Q, **params):
     plt.grid()
 
 
-#20250613
-#TODO: add 3d version.
-def plotEfcontribuciones(Q, x, **params):
-    """
-    Muestra los vectores de cada porción de un cuerpo extenso, ¡en 2D!
-    (no usar este código si las cargas están distribuidas en 3D).
-
-    Parameters
-    ----------
-    Q : list
-        Q = [
-            [q1,x1,y1,z1],
-            [q2,x2,y2,z2],
-            ...
-            [qN,xN,yN,zN]
-        ]
-    X : tuple
-        Posición donde se calcula el campo.
-    limites : tuple
-        Lmites de los ejes: [xmin, xmax, ymin, ymax]
-    scale : float
-        Regula la longitud de las flechas.
-    r : float
-        Radio de las partículas cargadas.
-    linewidth : float
-        Grosor de las líneas que muestran la dirección.
-    in3D : bool
-        If True, it produces a 3D graph.
-
-    *Además de los parámetros de matplotlib y quiver, por ejemplo:*
-    length : float
-    figsize : tuple
-    title : string
-    """
-
-    figsize = params.get('figsize', (5,5))
-    title = params.get('title', "Contribuciones al campo eléctrico total")
-    scale = params.get('scale', 1)
-    linewidth = params.get('linewidth', 0.5)
-    in3D = params.get('in3D', False)
-
-    xmin, xmax, ymin, ymax, zmin, zmax = x[0],x[0],x[1],x[1], x[2], x[2]
-    x_pos = []
-    y_pos = []
-    z_pos = []
-    Ei = []
-    Ej = []
-    Ek = []
-    modulos = []
-    for q in Q:
-        Eii, Ejj, Ekk = Ef(x[0],x[1],x[2],[q])
-        # Elige límites para cuando el parámetro límites no es informado.
-        if q[1] > xmax:
-            xmax = q[1]
-        if q[1] < xmin:
-            xmin = q[1]
-        if q[2] > ymax:
-            ymax = q[2]
-        if q[2] < ymin:
-            ymin = q[2]
-        if q[3] > zmax:
-            zmax = q[3]
-        if q[3] < zmin:
-            zmin = q[3]
-        x_pos = np.concatenate((x_pos,x[0]), axis=None)
-        y_pos = np.concatenate((y_pos,x[1]), axis=None)
-        z_pos = np.concatenate((z_pos,x[2]), axis=None)
-        modulo = np.sqrt(Eii**2 + Ejj**2 + Ekk**2)
-        modulos = np.concatenate((modulos, modulo), axis=None)
-        Ei = np.concatenate((Ei, Eii), axis=None)
-        Ej = np.concatenate((Ej, Ejj), axis=None)
-        Ek = np.concatenate((Ek, Ekk), axis=None)
-
-    # Se expanden los límites automáticos:
-    xmax = xmax + (xmax - xmin)*0.2
-    xmin = xmin - (xmax - xmin)*0.2
-    ymax = ymax + (ymax - ymin)*0.2
-    ymin = ymin - (ymax - ymin)*0.2
-    zmax = zmax + (zmax - zmin)*0.2
-    zmin = zmin - (zmax - zmin)*0.2
-
-    rm = np.max(np.sqrt((xmax-xmin)**2 + (ymax-ymin)**2 + (zmax-zmin)**2))*0.01
-    r = params.get('r', rm)
-
-    Ei = np.round(Ei/np.max(modulos),3)
-    Ej = np.round(Ej/np.max(modulos),3)
-    Ek = np.round(Ek/np.max(modulos),3)
-
-    if in3D:
-        limites = params.get('limites', [xmin,xmax,ymin,ymax, zmin, zmax])
-    else:
-        limites = params.get('limites', [xmin,xmax,ymin,ymax])
-
-    arrwidth = params.get('arrwidth', 0.005*(limites[1]-limites[0]))
-    
-    # Creating plot
-    if in3D:
-        pass
-    else:
-        fig, ax = plt.subplots(figsize = figsize)
-
-        # ax.quiver(x_pos, y_pos, Ei, Ej, angles='xy', scale_units='xy', scale=scale)
-        ax.quiver(x_pos, y_pos, Ei, Ej, scale=scale, width=arrwidth)
-
-        # Necesito un for separado para determinar el tamaño de los círculos.
-        for q in Q:
-            qq, xq, yq, zq = q
-            ax.plot([xq,x[0]], [yq,x[1]], color='b', linewidth=linewidth, linestyle='dashed')
-            if qq > 0:
-                colorq = 'red'
-            else :
-                colorq = 'green'
-            circ = plt.Circle((xq,yq), r, color=colorq)
-            ax.add_patch(circ)
-        # ax.set_title(title)
-        ax.set_xlabel('$x$ [m]')
-        ax.set_ylabel('$y$ [m]')
-
-    ax.axis(limites)
-    ax.set_title(title)
-    plt.show()
-    # plt.close()
-
 # 20250613
-def plotEfVector(Q, X, **params):
+def plotEfVector2(Q, X, **params):
     """
     Muestra los vectores del campo en 2D usando pyplot.quiver.
 
@@ -286,16 +163,26 @@ def plotEfVector(Q, X, **params):
         Posiciones donde se calcula el campo.
     limites : tuple
         Limites de los ejes: [xmin, xmax, ymin, ymax]
+    aumento : float
+        Factor para cambiar el tamaño de la figura. Mantiene
+        la relación entre ejes.
     scale : float
         Regula la longitud de las flechas.
     lineas : float
         Si es True, se grafican las líneas de campo eléctrico.
     contribuciones : boolean
         Graficar los vectores producidos por cada carga, además del resultante.
-
+    normalizados : boolean
+        Normalizar todos los vectores. Utilizar cuando las longitudes de las flechas
+        resultan incómodas, para solo visualizar direcciones y sentidos.
+    conectores : boolean
+        Muestra una recta punteada desde la carga hasta el punto campo.
+    linewidth : float
+        Ancho de las líneas que muestran la dirección.
+    
     *Además de los parámetros de matplotlib y quiver, por ejemplo:*
     length : float
-    figsize : tuple
+    figsize : tuple (no usar, se controla con limites y aumento)
     title : string
     """
 
@@ -304,6 +191,10 @@ def plotEfVector(Q, X, **params):
     scale = params.get('scale', 1)
     lineas = params.get('lineas', False)
     contribuciones = params.get('contribuciones', False)
+    normalizados = params.get('normalizados', False)
+    conectores = params.get('conectores', False)
+    linewidth = params.get('linewidth', 0.5)
+    aumento = params.get('aumento', 1)
 
     xmin, xmax, ymin, ymax = 0,0,0,0
     x_pos = []
@@ -322,7 +213,11 @@ def plotEfVector(Q, X, **params):
                 Eii, Ejj, Ekk = Ef(x[0],x[1],x[2],[q])
                 x_pos = np.concatenate((x_pos,x[0]), axis=None)
                 y_pos = np.concatenate((y_pos,x[1]), axis=None)
-                N = np.sqrt(Eii**2 + Ejj**2)*1.5
+                if normalizados:
+                    # N = np.sqrt(Eii**2 + Ejj**2)*1.5
+                    N = np.sqrt(Eii**2 + Ejj**2)
+                else:
+                    N = 1
                 Ei = np.concatenate((Ei, Eii/N), axis=None)
                 Ej = np.concatenate((Ej, Ejj/N), axis=None)
                 color = color + [cq]
@@ -341,7 +236,11 @@ def plotEfVector(Q, X, **params):
             ymin = x[1]
         x_pos = np.concatenate((x_pos,x[0]), axis=None)
         y_pos = np.concatenate((y_pos,x[1]), axis=None)
-        N = np.sqrt(Eii**2 + Ejj**2)*1.5
+        if normalizados:
+            # N = np.sqrt(Eii**2 + Ejj**2)*1.5
+            N = np.sqrt(Eii**2 + Ejj**2)
+        else:
+            N = 1
         Ei = np.concatenate((Ei, Eii/N), axis=None)
         Ej = np.concatenate((Ej, Ejj/N), axis=None)
         color = color + ['k']
@@ -349,6 +248,9 @@ def plotEfVector(Q, X, **params):
     # Creating plot
     fig, ax = plt.subplots(figsize = figsize)
     ax.quiver(x_pos, y_pos, Ei, Ej, angles='xy', scale_units='xy', scale=scale, color=color)
+    # Experimentar con el parámetro width para el ancho de las flechas.
+    # ax.quiver(x_pos, y_pos, Ei, Ej, angles='xy', scale_units='xy', scale=scale,
+        # width=0.00075*(xmax-xmin), color=color)
 
     for q in Q:
         qq, xq, yq, zq = q
@@ -368,19 +270,29 @@ def plotEfVector(Q, X, **params):
             colorq = 'green'
         circ = plt.Circle((xq,yq), np.max(np.abs(X))*0.02, color=colorq)
         ax.add_patch(circ)
+
+    if conectores:
+        for q in Q:
+            qq, xq, yq, zq = q
+            for x in X:
+                ax.plot([xq,x[0]], [yq,x[1]], color='b', linewidth=linewidth, linestyle='dashed')
+
     # ax.set_title(title)
     ax.set_xlabel('$x$ [m]')
     ax.set_ylabel('$y$ [m]')
 
     # Se expanden los límites automáticos:
-    xmax = xmax + (xmax - xmin)*0.2
-    xmin = xmin - (xmax - xmin)*0.2
-    ymax = ymax + (ymax - ymin)*0.2
-    ymin = ymin - (ymax - ymin)*0.2
+    stretch = 0.15
+    xmax2 = xmax + (xmax - xmin)*stretch
+    xmin2 = xmin - (xmax - xmin)*stretch
+    ymax2 = ymax + (ymax - ymin)*stretch
+    ymin2 = ymin - (ymax - ymin)*stretch
 
-    limites = params.get('limites', [xmin,xmax,ymin,ymax])
+    limites = params.get('limites', [xmin2,xmax2,ymin2,ymax2])
     ax.axis(limites)
     ax.set_title(title)
+    if normalizados:
+        ax.text(limites[0] + 0.5, limites[2] + 0.1, "Vectores normalizados", fontsize=12)
 
     if lineas:
         # Lista de puntos para que las líneas de campo
@@ -392,13 +304,15 @@ def plotEfVector(Q, X, **params):
             b = b + [x[1]]
         start = [a,b]
         plotEf(Q, start=start, axs=ax)
-
+        
+    # plt.axis('equal')
+    fig.set_size_inches(((limites[1]-limites[0])*aumento, (limites[3]-limites[2])*aumento))
     plt.show()
-    print(color)
     # plt.close()
 
 
 # 20240819
+#TODO: agregar contribuciones.
 def plotEfvector3d(Q, **params):
     """
     Muestra los vectores del campo de un sistema de cargas puntuales
